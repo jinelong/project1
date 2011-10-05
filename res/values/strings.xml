@@ -2,4 +2,7 @@
 <resources>
     <string name="hello">Hello World, LabCheckActivity!</string>
     <string name="app_name">LabCheck</string>
+    <string name="lab_check_addr">https://www.purdue.edu/apps/ics/LabMap</string>
+    
+    
 </resources>
