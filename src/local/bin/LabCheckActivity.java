@@ -1,5 +1,8 @@
 package local.bin;
 
+
+//github addr:
+//https://jinelong@github.com/jinelong/labcheck.git
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.DataInputStream;
@@ -21,11 +24,27 @@ import org.apache.http.util.ByteArrayBuffer;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
-
+/*
+ * further UI design
+ * 1. Listview
+ * 2. make progress bar (use progressbar to display availability)
+ * 3. maybe google map integration
+ * 4. splash screen
+ * 5. opmize for tablet
+ * 
+ * back-end
+ * 1. pull the geographical location from the source
+ * 2. check if the site is down
+ * 3. figure out map view
+ * 4.
+ * 
+ * 
+ * */
 
 
 
@@ -39,24 +58,25 @@ public class LabCheckActivity extends Activity {
 	
 	private class rooms {
 	 	
-	 	public String name;
+	 	public String building;
 	 	public String room;
 	 	public String status;
 	 	
-	 	public rooms(String n, String r, String s){
-	 		name = n;
+	 	public rooms(String b, String r, String s){
+	 		building = b;
 	 		room = r;
 	 		status = s;
 	 		
 	 	}
 	 	
-	 }
+	 }//rooms
 
-	ArrayList<rooms> roomList ;
+	ArrayList<rooms> roomList = new ArrayList();
 	boolean newRoomFlag = true;
 	String bName = null;
 	String rName = null;
 	String status = null;
+	
 	
     /** Called when the activity is first created. */
     @Override
@@ -65,6 +85,7 @@ public class LabCheckActivity extends Activity {
         setContentView(R.layout.main);
 
         t= (TextView)findViewById(R.id.t1);
+        t.setMovementMethod(new ScrollingMovementMethod());
         String a = "https://www.purdue.edu/apps/ics/LabMap";
         String b = "http://www.purdue.edu/";
        // t.setVisibility(View.INVISIBLE);
@@ -82,7 +103,15 @@ public class LabCheckActivity extends Activity {
 			e.printStackTrace();
 		}
         
-        finish();
+        //finish();
+        String content = roomList.size() + " computer labs found";
+        for(int i =0; i< roomList.size(); i++){
+        	content += "\n" + roomList.get(i).building+" "+roomList.get(i).room+"\n" + roomList.get(i).status + "\n";
+        	
+        }
+        t.setText(content);
+        t.setVisibility(View.VISIBLE);
+        
         
         
 		
@@ -106,6 +135,8 @@ public class LabCheckActivity extends Activity {
 	        		
 		        	System.out.println(bName);
 		        	Log.d("roomInfo", bName);
+		        	
+		        	
 		        	if(result[i].contains(temp2)){
 		        		
 		        		int start2 = result[i].indexOf(temp2);
@@ -116,7 +147,9 @@ public class LabCheckActivity extends Activity {
 		        		System.out.println(rName);
 		        		Log.d("roomInfo", rName);
 		        	}
-	        	
+		        	
+	        		newRoomFlag = true;
+
 	        	}
 	        	else if(result[i].contains("<font size=-2>")){
 	        		
@@ -143,6 +176,7 @@ public class LabCheckActivity extends Activity {
 		
 	        	if(!newRoomFlag){
 	        		roomList.add(new rooms(bName, rName, status));
+	        		Log.d("roomInfo","item added");
 	        		newRoomFlag = true;
 	        	}
 	        }//for
@@ -156,7 +190,7 @@ public class LabCheckActivity extends Activity {
         File fFileName = new File("/mnt/sdcard/lab");
         Scanner scanner = new Scanner(new FileInputStream(fFileName));
     
-        Pattern p = Pattern.compile("(\\s+)?maparray\\[\\d+\\]\\[4\\]");
+        Pattern p = Pattern.compile("(^\\s+)?maparray\\[\\d+\\]\\[4\\]");
 		//Pattern p2 = Pattern.compile("a href=LabInfo?building=\\S+&room=\\d+>");
      
         try {
@@ -165,21 +199,16 @@ public class LabCheckActivity extends Activity {
 			Matcher m = p.matcher(line);
 			boolean r = m.find();
 			if(r)
-				parse(line);
 				Log.d("downloader", line);
+				parse(line);
           	
           	}
-          }
+          }//try
         
         finally{
-        	
         	 scanner.close();
         }
-       
-        
-      }
-    	 
-        
+      }//read
    
 
 	public void DownloadFromUrl(String imageURL, String fileName) {  //this is the downloader method
