@@ -2,7 +2,8 @@ package local.bin;
 
 
 //github addr:
-//https://jinelong@github.com/jinelong/labcheck.git
+//git@github.com:jinelong/labcheck.git
+
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.DataInputStream;
@@ -41,10 +42,19 @@ import android.widget.TextView;
  * 1. pull the geographical location from the source
  * 2. check if the site is down
  * 3. figure out map view
- * 4.
+ * 4. add "find a computer" function. PC and Mac
+ * 5. 
  * 
+ *
  * 
+ *		// maparray[i][0] contains the name of the Building
+		// maparray[i][1] contains the longitude coordinate
+		// maparray[i][2] contains the latitude coordinate
+		// maparray[i][3] contains the percent of total computers available in the lab containing the most available computers for the lab
+		// maparray[i][4] contains the HTML content of the notes field
  * */
+
+
 
 
 
@@ -61,11 +71,16 @@ public class LabCheckActivity extends Activity {
 	 	public String building;
 	 	public String room;
 	 	public String status;
+	 	public String longtitude;
+	 	public String latitude;
 	 	
-	 	public rooms(String b, String r, String s){
+	 	public rooms(String b, String r, String s, String lg, String la){
 	 		building = b;
 	 		room = r;
 	 		status = s;
+	 		longtitude = lg;
+	 		latitude = la;
+	 		
 	 		
 	 	}
 	 	
@@ -76,7 +91,10 @@ public class LabCheckActivity extends Activity {
 	String bName = null;
 	String rName = null;
 	String status = null;
+	String currentLatitude = null;
+	String currentLongtitude = null;
 	
+
 	
     /** Called when the activity is first created. */
     @Override
@@ -106,7 +124,7 @@ public class LabCheckActivity extends Activity {
         //finish();
         String content = roomList.size() + " computer labs found";
         for(int i =0; i< roomList.size(); i++){
-        	content += "\n" + roomList.get(i).building+" "+roomList.get(i).room+"\n" + roomList.get(i).status + "\n";
+        	content += "\n" + roomList.get(i).building+" "+roomList.get(i).room+ "\n" + roomList.get(i).longtitude+ roomList.get(i).latitude+"\n" + roomList.get(i).status + "\n";
         	
         }
         t.setText(content);
@@ -175,7 +193,7 @@ public class LabCheckActivity extends Activity {
 	        	}
 		
 	        	if(!newRoomFlag){
-	        		roomList.add(new rooms(bName, rName, status));
+	        		roomList.add(new rooms(bName, rName, status, currentLongtitude, currentLatitude));
 	        		Log.d("roomInfo","item added");
 	        		newRoomFlag = true;
 	        	}
@@ -191,18 +209,48 @@ public class LabCheckActivity extends Activity {
         Scanner scanner = new Scanner(new FileInputStream(fFileName));
     
         Pattern p = Pattern.compile("(^\\s+)?maparray\\[\\d+\\]\\[4\\]");
+        Pattern longtitude =Pattern.compile("(^\\s+)?maparray\\[\\d+\\]\\[1\\]");
+        Pattern latitude =Pattern.compile("(^\\s+)?maparray\\[\\d+\\]\\[2\\]");
+        
 		//Pattern p2 = Pattern.compile("a href=LabInfo?building=\\S+&room=\\d+>");
      
         try {
           while (scanner.hasNextLine()){
             String line = scanner.nextLine();
-			Matcher m = p.matcher(line);
-			boolean r = m.find();
-			if(r)
+			
+            Matcher m = p.matcher(line);
+			Matcher longti = longtitude.matcher(line);
+			Matcher lati = latitude.matcher(line);
+			
+			boolean info = m.find();
+			
+			
+			
+			if(info){
 				Log.d("downloader", line);
 				parse(line);
-          	
           	}
+			else if( longti.find()){
+				Log.d("downloader", line);
+				Pattern splitEqual = Pattern.compile("=");
+				String[] result = splitEqual.split(line);
+				
+				currentLongtitude = result[1].substring(0, result[1].length()-1);
+				Log.d("roomInfo", currentLongtitude);
+			}
+			else if(lati.find()){
+				Log.d("downloader", line);
+				Log.d("downloader", line);
+				Pattern splitEqual = Pattern.compile("=");
+				String[] result = splitEqual.split(line);
+				
+				currentLatitude = result[1].substring(0, result[1].length()-1);
+				
+				Log.d("roomInfo", currentLatitude);
+				
+			}
+          }//while
+          
           }//try
         
         finally{
