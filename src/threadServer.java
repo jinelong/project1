@@ -12,12 +12,6 @@ public class threadServer extends Thread {
 	 * to execute: java threadServer [portNum]
 	 */
 	
-	//public static int maxClient = 100;
-	//public static Client clientList[] = new Client[maxClient]; 
-	//private static int top = 0;
-	
-	
-	
 	public int portC;
 	private Socket temp;
 	//public ServerSocket serverLink;

@@ -33,13 +33,47 @@ public class iterClient {
 	ArrayList<client> localList = new ArrayList<client>();
 	static int myChannelNum = -1;
 	static int msgCounter = 0;
+	static String receivedMessageFrom = null;
 	
 	static boolean cantJoinOrCreate = false;
 
 	public enum command {createChannel, joinChannel, stat, quit ,heartbeat} 
 	
 	
+	// boradcast using multi thread
+	class broadcastSender extends Thread{
+		
+		String _ip ;
+		int _port;
+		String _msg;
+		
+		
+		public broadcastSender(String ip, int port, String msg){
+			_ip = ip;
+			_port = port;
+			_msg = msg;			
+			
+		}
+		public void run(){
+			
+			Socket s = null; 
+			try{
+				s = new Socket(_ip, _port);
+				BufferedWriter wr = new BufferedWriter(new OutputStreamWriter(s.getOutputStream()));
+				wr.write(_msg);
+				wr.flush();
+				wr.close();
+				s.close();
+			}catch(Exception e){
+				System.err.println("something wrong when bradcasting to ip: " + _ip);
+				e.printStackTrace();
+			}
+			
+		}
+	}
 	
+	
+	//for sending, maybe use multi-thread?
 	public void broadcast(String msg) throws NumberFormatException, UnknownHostException, IOException{
 	
 		Socket s = null; 
@@ -56,13 +90,18 @@ public class iterClient {
 			//iterate through the list, send message
 			for(int i =0;i<localList.size();i++){
 				
+				//do not send the message to myself
+				if(localList.get(i).name.equals(myName)) continue;
+				
+				new Thread (new broadcastSender(localList.get(i).ip, Integer.parseInt(localList.get(i).chatPort), bMsg)).run();
+			/*
 				s = new Socket(localList.get(i).ip, Integer.parseInt(localList.get(i).chatPort));
 				BufferedWriter wr = new BufferedWriter(new OutputStreamWriter(s.getOutputStream()));
 				wr.write(bMsg);
 				wr.flush();
 				wr.close();
 				s.close();
-				
+			*/
 			}
 		}//else
 		
@@ -246,24 +285,39 @@ public class iterClient {
 						}// if from server
 						
 						
-						/* at this point: 
-						 *   Jin@23@this is the 23th message
-						 *   
-						 * from this line, is the case in which the client got a broadcast
-						 * we got a braoadcast message, implementation here
-						 * note: 
-						 *  	at this point, if you call tempString =  t1.next(),
-						 *      tempString is the name of the sender
-						 *
-						 * 		if you call tempString2 = t1.next() again , you get the seq
-						 * 
-						 */
+				/* at this point: 
+				 *   Jin@23@this is the 23th message
+				 *   
+				 * from this line, is the case in which the client got a broadcast
+				 * we got a braoadcast message, implementation here
+				 * note: 
+				 *  	at this point, if you call tempString =  t1.next(),
+				 *      tempString is the name of the sender
+				 *
+				 * 		if you call tempString2 = t1.next() again , you get the seq
+				 * 			
+				 * 
+				 *  sending format:
+				 *  	String bMsg = "b"+"@"+myName+"@"+msgCounter+"@"+msg+"@";
+				 *
+				 */
 						else if(id.equals("b")){
 							String senderName = t1.next();
 							String seqStr = t1.next();
 							String msg = t1.next();
 							
+							//variable used to mark where the msg is from
+							
 							//buffer it or send
+							System.out.println(senderName + "says: " + " msg: " + msg);
+							
+							/*
+							 * to send:
+							 * 1. add current message to buffer
+							 * 2. call boradcastSender() fed with buffer
+							 */
+							
+							
 							
 						}
 						else{
