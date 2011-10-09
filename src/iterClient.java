@@ -73,6 +73,10 @@ public class iterClient {
 	}
 
 	public void printClients(){
+		if(localList.size() == 1){
+			System.out.println("forever alone.... you have no company in this channel");
+			return;
+		}
 		
 		for(int i =0;i<localList.size();i++){
 			System.out.println("-------------\nClient: " + i );
@@ -165,6 +169,9 @@ public class iterClient {
 								Scanner pond = new Scanner(listInfo).useDelimiter("#");
 								String entry = pond.next();
 								
+								//clean previous record
+								localList.clear();
+								System.out.println("localList reset, size: " + localList.size());
 								
 								do{
 									Scanner dollar = new Scanner(entry).useDelimiter("\\$");
@@ -230,6 +237,7 @@ public class iterClient {
 								}//for
 								if(ifRemoved){
 									System.out.println(tempName + " is removed");
+									printClients();
 								}else{
 									System.err.println("something wrong happened, not sure why ,but "  + tempName + " is not removed");
 								}
@@ -325,45 +333,6 @@ public class iterClient {
 		
 	}
 	
-	/*
-	
-	public void send(String serverAddr, int serverPort, String message) {
-
-		Socket socket = null;
-
-		try {
-
-			socket = new Socket(serverAddr, serverPort);
-//			socket.setSoTimeout(5000);
-
-		} catch (SocketTimeoutException e) {
-			System.err.println("send socket timeout, please check server port and address");
-
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-		try {
-			// send connection confirmation
-			BufferedWriter wr = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-			wr.write(message);
-			// wr.write("n5"+"@"+ip+"@"+"23433235@");
-			wr.flush();
-			wr.close();
-		} catch (IOException e) {
-		//	e.printStackTrace();	
-			System.err.println("something wrong when sending message, try again....");
-		}
-
-		try {
-			socket.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-	}	
-*/
 	public static void main(String[] args) throws InterruptedException, IOException {
 
 		Socket socket = null;

@@ -29,7 +29,8 @@ public class threadServer extends Thread {
 	static int channelCounter = 0;
 	
 	public enum command {ERROR, MSG, STAT, CHNL, MLIST , RM};
-	
+
+
 	class Client extends client {
 		
 		public Client(){
@@ -147,15 +148,17 @@ public class threadServer extends Thread {
 		String content = "server@mlist@";
 		BufferedWriter wr = null;
 		
+		//contructing the content
+		for(int j=0;j<channelList.get(channel).members.size(); j++){
+			content+= channelList.get(channel).members.get(j).name + "$" + channelList.get(channel).members.get(j).ip + "$" + channelList.get(channel).members.get(j).chatPort + "$#";
+		}//j
 		
 		for(int i =0; i< channelList.get(channel).members.size(); i++){
 			//send it the the i-th member of
 			s = new Socket( channelList.get(channel).members.get(i).ip, Integer.parseInt( channelList.get(channel).members.get(i).chatPort));
+			wr = new BufferedWriter(new OutputStreamWriter(s.getOutputStream()));
 			//the j-th person's info
-			for(int j=0;j<channelList.get(channel).members.size(); j++){
-				wr = new BufferedWriter(new OutputStreamWriter(s.getOutputStream()));
-				content+= channelList.get(channel).members.get(j).name + "$" + channelList.get(channel).members.get(j).ip + "$" + channelList.get(channel).members.get(j).chatPort + "$#";
-			}//j
+			
 			wr.write(content);
 			wr.flush();
 			wr.close();
@@ -208,7 +211,7 @@ public class threadServer extends Thread {
 	        			
 	        		System.out.println("sending heartbeat requst to "+ channelList.get(i).members.get(j).name);
 	        		try {
-						 s = new Socket(channelList.get(i).members.get(j).ip, Integer.parseInt(channelList.get(i).members.get(j).chatPort));
+						s = new Socket(channelList.get(i).members.get(j).ip, Integer.parseInt(channelList.get(i).members.get(j).chatPort));
 						s.setSoTimeout(2000);
 			    		BufferedWriter wr = new BufferedWriter(new OutputStreamWriter(s.getOutputStream()));
 			    		wr.write("server@heartbeat@");
@@ -216,7 +219,7 @@ public class threadServer extends Thread {
 			    		wr.close();
 
 					} catch (SocketTimeoutException e){
-						System.out.println("client " + j + "did not respend");
+						System.out.println("client " + channelList.get(i).members.get(j).name + " did not respend");
 						System.out.println("client name:  " + channelList.get(i).members.get(j).name );
 						System.out.println("client ip: " + channelList.get(i).members.get(j).ip);
 						
@@ -231,7 +234,8 @@ public class threadServer extends Thread {
 						} catch (IOException e1) {
 							// TODO Auto-generated catch block
 							e1.printStackTrace();
-						}
+						} 
+						
 						
 					}catch (NumberFormatException e) {
 						// TODO Auto-generated catch block
