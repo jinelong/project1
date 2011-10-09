@@ -1,3 +1,10 @@
+/**
+	 * @author Jin
+	 * unit that stores online client info
+	 * giHub addr: git@github.com:jinelong/project1.git
+	 * 
+	 */
+
 /*
  * 
  * this class is the generic class of the client
@@ -5,6 +12,7 @@
  * client will use the default setName method 
  * 
  */
+
 public class client {
 
 	

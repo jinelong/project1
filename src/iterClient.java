@@ -2,10 +2,12 @@ import java.net.*;
 import java.util.ArrayList;
 import java.util.Scanner;
 import java.io.*;
-
-
-// to run:
-// java iterClient [serverPort] [ownPort] [yourownport]
+/**
+ * @author Jin
+ * unit that stores online client info
+ * giHub addr: git@github.com:jinelong/project1.git
+ * to run: java iterClient [serverPort] [ownPort] [yourownport]
+ */
 
 /*
  * things to do:
@@ -32,7 +34,8 @@ public class iterClient {
 	static int myChannelNum = -1;
 	static int msgCounter = 0;
 	
-	
+	static boolean cantJoinOrCreate = false;
+
 	public enum command {createChannel, joinChannel, stat, quit ,heartbeat} 
 	
 	
@@ -79,10 +82,13 @@ public class iterClient {
 		}
 	}
 
-	public iterClient(String addr, int sPort, String myName, int oPort)	throws IOException, InterruptedException {
+	public iterClient(String addr, int sPort, String name, int oPort)	throws IOException, InterruptedException {
 		serverPort = sPort;
 		ownPort = oPort;
 		serverAddr = addr;
+		
+		myName = name;
+		
 		
 		// setup listening server for server info and client message
 		// maybe we should make this multi-thread
@@ -90,7 +96,7 @@ public class iterClient {
 		rServer.start();
 		
 		//send stat request to the server
-		sendToServer(command.stat);
+		sendToServer(command.stat, 0);
 		
 		
 	}//constructor
@@ -139,7 +145,7 @@ public class iterClient {
 
 					while ((str = rd.readLine()) != null) {
 						
-						//System.out.println("receive: " + str);
+						System.out.println("receive: " + str + "<<<<<<<<<<end>>>>>>>");
 						Scanner t1 = new Scanner(str).useDelimiter("@");
 						id = t1.next();
 						
@@ -152,7 +158,7 @@ public class iterClient {
 							instruction = t1.next();
 							if (instruction.equals("mlist")) {
 								
-								System.out.println(str.substring(13));
+								System.out.println("useful substring: " + str.substring(13));
 								String listInfo = str.substring(13);
 								System.out.println("receive listInfo: " + listInfo);
 								
@@ -163,14 +169,16 @@ public class iterClient {
 								do{
 									Scanner dollar = new Scanner(entry).useDelimiter("\\$");
 									//	public client(String n, String i, String  p, int c){
+									// name, ip, port, channelNum
 
+									
 									localList.add(new client(dollar.next(), dollar.next(), dollar.next(), myChannelNum));
 									
 									System.out.println(localList.get(localList.size()-1).name + " added to the list" );
 									
 									try{
-										if(pond.hasNext()) entry = pond.next();
-										else{ System.err.println("pond does not have next");}
+										 entry = pond.next();
+										
 									}
 									catch(Exception e){
 										break;
@@ -184,7 +192,7 @@ public class iterClient {
 							}//instruction == List
 							else if (instruction.equals("heartbeat")) {
 								// server request heartbeat
-								sendToServer(command.heartbeat);
+								sendToServer(command.heartbeat, 0);
 							}
 							else if (instruction.equals("error")) {
 								
@@ -202,11 +210,12 @@ public class iterClient {
 							}
 							//server@msg@message
 							else if(instruction.equals("msg")){
-								System.out.println(t1.next());
+								System.out.println("-----I got a message: " + t1.next());
 							}
 							//server@chnl@yourChannelNum
 							else if(instruction.equals("chnl")){
 								myChannelNum = Integer.parseInt(t1.next());
+								System.out.println("got channel num from server: " + myChannelNum);
 							}
 							//server@rm@name_of_person_who_left
 							else if(instruction.equals("rm")){
@@ -249,6 +258,10 @@ public class iterClient {
 							//buffer it or send
 							
 						}
+						else{
+							System.out.println("got unknown message");
+							
+						}
 					}//while read line
 
 					rd.close();
@@ -262,42 +275,51 @@ public class iterClient {
 
 	}// receive
 	
-	
-	public void sendToServer(command c) throws UnknownHostException, IOException {
+	//the second parameter is only in use when the user tries to join a channel
+	public void sendToServer(command c, int channel) throws UnknownHostException, IOException {
 		
 
 		///stat@name@22222
 		//createChannel@name@22222
 		//joinChannel@name@22222@channelNum
 		//quit@name@channelNum
+		
+		System.out.print("in sendToServer: ");
 		String content = null;
 		switch (c){
 		
 			case createChannel:
 				content = "createChannel@"+myName+"@"+ownPort+"@";
+				System.out.println("createChannel");
 				break;
 			
 			case joinChannel:
-				content = "joinChannel@"+myName+"@"+ownPort+"@"+myChannelNum+"@";
+				content = "joinChannel@"+myName+"@"+ownPort+"@"+channel+"@";
+				System.out.println("joinChannel");
 				break;
 				
 			case quit:
 				content = "quit@"+myName+"@"+myChannelNum+"@";
+				System.out.println("quit");
 				break;
 				
 			case stat:
 				content = "stat@"+myName+"@"+ownPort+"@";
+				System.out.println("stat");
 				break;
 			case heartbeat:
 				content = "heartbeat@"+myName+"@"+myChannelNum+"@";
+				System.out.println("heartBeat");
 				break;
 		
 		}
 		
 		Socket socket = new Socket(serverAddr, serverPort);
+		System.out.println("socket created");
 		BufferedWriter wr = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
 		wr.write(content);
 		wr.flush();
+		System.out.println("content: " + content + " sent");
 		wr.close();
 		socket.close();
 		
@@ -353,19 +375,22 @@ public class iterClient {
 
 		Scanner s = new Scanner(System.in);
 
-		serverAddr = args[0];
-		serverPort = Integer.parseInt(args[1]);
-		ownPort = Integer.parseInt(args[2]);
+		//serverAddr = args[0];
+		//serverPort = Integer.parseInt(args[1]);
+		//ownPort = Integer.parseInt(args[2]);
+		serverAddr = "sslab01.cs.purdue.edu";
+		serverPort = 22222;
+		ownPort = 22223;
+		
 		
 		System.out.print("please input your name: ");
 		name = s.nextLine();
-		s.close();
+		
 		
 		try {
-
+			
 			user = new iterClient(serverAddr, serverPort, name, ownPort);
-			user.myName = name;
-		
+			
 
 		} catch (IOException e1) {
 			e1.printStackTrace();
@@ -375,11 +400,15 @@ public class iterClient {
 		str = s.nextLine();
 		while (user.doNotQuit){
 			
-			System.out.println("enter your commend, enter 'quit' to disconnect. to chat, type \"chat@[clientNum]@[your message]\"");
+			System.out.println("enter your commend, enter 'quit' to disconnect.");
 			//s.next()  quit or b@message
 			if(str.equals("quit")){
-				user.sendToServer(command.quit);
+				user.sendToServer(command.quit, 0);
 				break;
+			}
+			else if(str.equals("createChannel")   && !cantJoinOrCreate){
+				user.sendToServer(command.createChannel, 0);
+				cantJoinOrCreate = true;
 			}
 			//b@your_message
 			else if(str.indexOf("b@")==0){
@@ -388,8 +417,13 @@ public class iterClient {
 				String content = c.next();
 				user.broadcast(content);
 			}
+			else if (str.startsWith("joinChannel") && !cantJoinOrCreate){
+				System.out.println(str.substring(11) + " <---- channelNum");
+				user.sendToServer(command.joinChannel, Integer.parseInt(str.substring(11)));
+				cantJoinOrCreate = true;
+			}
 			else{
-				System.out.println("unrecognized command");
+				System.out.println("unrecognized command, you may already in a channel");
 			}
 			str=s.nextLine();
 

@@ -24,12 +24,11 @@ public class threadServer extends Thread {
 	static Timer timer;
     
 	final static int maxChannelNum = 5;
-	static int channelCounter = 1;
+	static int channelCounter = 0;
 	
 	public enum command {ERROR, MSG, STAT, CHNL, MLIST , RM};
 	
 	class Client extends client {
-		
 		
 		public Client(){
 			super();
@@ -37,6 +36,12 @@ public class threadServer extends Thread {
 		
 	
 		public boolean setName (String n, int channel){
+			
+			if( channelList.size() <= channel){
+				name = n;
+				this.channel = channel;
+				return true;
+			}	
 			
 			for(int i=0;i<channelList.get(channel).members.size();i++){
 				if(n.equals(channelList.get(channel).members.get(i).name)){
@@ -67,29 +72,35 @@ public class threadServer extends Thread {
 		
 	
 		String content = "server@";
+		System.out.println("in sendMsg------");
 		
 		switch(c){
 			
 			case ERROR:
+					System.out.println("sending out an error message");
 					content+="error@"+msg;
 					break;
 			case MSG:
 					content+="msg@"+msg;
 					break;
 			case STAT:
+					System.out.println("calls sendStat instead");
 					sendStat(ip, p);
-					break;
+					return;
 			case CHNL:
 					//msg contains the channel number
 					content+="chnl@"+msg;
 					break;
 			case MLIST:
 					//msg contains the channel number
+					System.out.println("calls sendMemberList instead");
 					sendMemberList(msg);
-					break;
+					return;
 			case RM:
 					break;
 		}
+		
+		
 		Socket s = new Socket(ip, Integer.parseInt(p));
 		BufferedWriter wr = new BufferedWriter(new OutputStreamWriter(s.getOutputStream()));
 		wr.write(content);
@@ -98,6 +109,8 @@ public class threadServer extends Thread {
 		wr.flush();
 		wr.close();
 		s.close();
+		System.out.println("content: " + content + " written");
+
 
 	}
 	synchronized static void notifyRemovel(String quiter, String channelNum) throws NumberFormatException, UnknownHostException, IOException{
@@ -124,42 +137,58 @@ public class threadServer extends Thread {
 	synchronized static void sendMemberList(String channelNum) throws NumberFormatException, UnknownHostException, IOException{
 		
 		
+		System.out.println("in sendMemberList------");
+		
 		int channel = Integer.parseInt(channelNum);
 	
 		Socket s = null;
 		String content = "server@mlist@";
+		BufferedWriter wr = null;
+		
 		
 		for(int i =0; i< channelList.get(channel).members.size(); i++){
-			
+			//send it the the i-th member of
 			s = new Socket( channelList.get(channel).members.get(i).ip, Integer.parseInt( channelList.get(channel).members.get(i).chatPort));
-			BufferedWriter wr = new BufferedWriter(new OutputStreamWriter(s.getOutputStream()));
-			content+= channelList.get(channel).members.get(i).name + "$" + channelList.get(channel).members.get(i).chatPort + "#";
+			//the j-th person's info
+			for(int j=0;j<channelList.get(channel).members.size(); j++){
+				wr = new BufferedWriter(new OutputStreamWriter(s.getOutputStream()));
+				content+= channelList.get(channel).members.get(j).name + "$" + channelList.get(channel).members.get(j).ip + "$" + channelList.get(channel).members.get(j).chatPort + "$#";
+			}//j
 			wr.write(content);
 			wr.flush();
 			wr.close();
-			
-		}
+			s.close();
 		
-		s.close();
-	
+		
+		}//i
+		
 	}
 	synchronized void sendStat(String ip, String p) throws IOException{
-		Socket s = new Socket(ip, Integer.parseInt(p));
 		
-		BufferedWriter wr = new BufferedWriter(new OutputStreamWriter(s.getOutputStream()));
-		wr.write(channelList.size() + " out of " + maxChannelNum+ " created");
+		System.out.println("in sendStat------");
+		System.out.println("sending stat to " + ip + " at port " + p );
+		
+		
+		//Socket s = new Socket(ip, Integer.parseInt(p));
+		String content = "";
+		//BufferedWriter wr = new BufferedWriter(new OutputStreamWriter(s.getOutputStream()));
+		//wr.write(channelList.size() + " out of " + maxChannelNum+ " created");
 		if(channelList.size()>0){
 			for(int i = 0; i < channelList.size(); i++){
-					wr.write("channel " + (i+1) + " has " + channelList.get(i).members.size() + " members\n");
+					content += "channel " + (i+1) + " has " + channelList.get(i).members.size() + " members\n";
 
 			}
 			
 		}//if
 		else{
-			wr.write("no channel created, you are the first one on this server\n you can enter creatChannel@[yourName]@[yourPort] to create one");
+			content = "no channel created, you are the first one on this server\n you can enter 'creatChannel' to create one";
 		}
-		wr.flush();
-		wr.close();
+		//wr.write(content);
+		//wr.flush();
+		//wr.close();
+		//System.out.println("content: " + content + " written");
+		sendMsg(ip,p,content, command.MSG);
+		//s.close();
 		
 	}
 	
@@ -264,6 +293,9 @@ public class threadServer extends Thread {
 		
   	    // stat@name@222222
 		// createChannel@name@port
+		
+		System.out.println("in run");
+		
 	    try {
 	        BufferedReader rd = new BufferedReader(new InputStreamReader(temp.getInputStream()));
 
@@ -276,7 +308,7 @@ public class threadServer extends Thread {
 	        String p;
 	        String status;
 	        while ((str = rd.readLine()) != null) {
-	        //	System.out.println("read from socket: " + str);
+	        	System.out.println("read from socket: " + str);
 	        	
 	        	
 	        	Scanner t1 = new Scanner(str).useDelimiter("@");
@@ -293,7 +325,7 @@ public class threadServer extends Thread {
 	        	
 	        	
 	        if(status.equals("stat")){
-	        		
+	        		System.out.println("in run(), calling sendMsg-stat");
 	        		sendMsg(ip,p,"",command.STAT);
 		        
 	         }
@@ -314,7 +346,7 @@ public class threadServer extends Thread {
 	        	
 	        }else if(status.equals("createChannel")){
 	        	
-	        	if(channelCounter <= maxChannelNum){
+	        	if(channelCounter < maxChannelNum){
     		
 	        			Client c = new Client();
 	        			c.setName(name, channelCounter);
@@ -353,6 +385,7 @@ public class threadServer extends Thread {
 	        				c.setIP(ip);
 	        				channelList.get(channelIndex).members.add(c);
 	        				//broadcast to the number of this channel with new member list
+	        				sendMsg(ip,p,""+channelIndex,command.CHNL);
 	        				sendMsg(ip,p,""+channelIndex, command.MLIST);
 	        			}
 	        		}
@@ -430,7 +463,7 @@ public class threadServer extends Thread {
 		ServerSocket tempServer= new ServerSocket(port);
 
     	while(true){
-    		System.out.println("waitting for incomeing connections");
+    		System.out.println("waitting for incomeing connections, we have " + channelCounter + " channels created");
     		Socket temp = tempServer.accept();
         	new Thread( new threadServer(temp)).start();
         	
