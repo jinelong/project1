@@ -16,6 +16,8 @@ public class threadServer extends Thread {
 	//public static Client clientList[] = new Client[maxClient]; 
 	//private static int top = 0;
 	
+	
+	
 	public int portC;
 	private Socket temp;
 	//public ServerSocket serverLink;
