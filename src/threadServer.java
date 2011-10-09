@@ -289,7 +289,49 @@ public class threadServer extends Thread {
 	        	}//for_i
 	           }//run
 	    }//RemindTask
+	 
+	 //separate  createChannel, solve multi thread issue
+	 synchronized void createChannel(String name, String ip, String port) throws NumberFormatException, UnknownHostException, IOException{
+			
+     	if(channelCounter < maxChannelNum){
+		
+     			Client c = new Client();
+     			c.setName(name, channelCounter);
+     			c.setIP(ip);
+     			c.setPort(port);
+     			
+     			Channel newC = new Channel(""+ channelCounter);
+     			newC.members.add(c);
+     			
+	        		channelList.add(newC);
 
+	        		
+	        		sendMsg(ip, port, ""+channelCounter, command.CHNL);
+	        		sendMsg(ip, port, ""+channelCounter, command.MLIST);
+	        		channelCounter ++;
+     		
+     	}
+     	else{
+     		sendMsg(ip,port,"server has reached maximum number of channels, maybe you wanna join a chennel?", command.ERROR);
+     	}
+		 
+	 }//createChannel
+	 
+	 synchronized void joinChannel(String name, String ip, String port, int channelN) throws NumberFormatException, UnknownHostException, IOException{
+		 Client c = new Client();
+			if(c.setName(name, channelN)){
+				c.setPort(port);
+				c.setIP(ip);
+				channelList.get(channelN).members.add(c);
+				
+				//broadcast to the number of this channel with new member list
+				sendMsg(ip,port,""+channelN,command.CHNL);
+				sendMsg(ip,port,""+channelN, command.MLIST);
+				
+			}else{
+				sendMsg(ip,port,"name taken in the channel", command.ERROR);
+			}
+	 }
 	
 	public void run(){
 		
@@ -348,49 +390,22 @@ public class threadServer extends Thread {
 	        	
 	        }else if(status.equals("createChannel")){
 	        	
-	        	if(channelCounter < maxChannelNum){
-    		
-	        			Client c = new Client();
-	        			c.setName(name, channelCounter);
-	        			c.setIP(ip);
-	        			c.setPort(p);
-	        			
-	        			Channel newC = new Channel(""+ channelCounter);
-	        			newC.members.add(c);
-	        			
-		        		channelList.add(newC);
+	        	createChannel(name, ip, p);
 
-		        		
-		        		sendMsg(ip, p, ""+channelCounter, command.CHNL);
-		        		sendMsg(ip, p, ""+channelCounter, command.MLIST);
-		        		channelCounter ++;
-	        		
-	        	}
-	        	else{
-	        		sendMsg(ip,p,"server has reached maximum number of channels, maybe you wanna join a chennel?", command.ERROR);
-	        	}
-
-	        	
 	        }//createChennel
 	        //joinChannel@name@22222@channelNum
 	        else if(status.equals("joinChannel")){
 	        	//check if there's a fourth string
 	        	if(t1.hasNext()){
 	        		int channelIndex = Integer.parseInt(t1.next());
+	        		
 	        		if(channelIndex > channelCounter){
 	        			sendMsg(ip, p, "you are trying to join a channel that has not been created, please create the channel first", command.ERROR);
 	        		}
 	        		else{
-	        			Client c = new Client();
-	        			if(c.setName(name, channelIndex)){
-	        				c.setPort(p);
-	        				c.setIP(ip);
-	        				channelList.get(channelIndex).members.add(c);
-	        				//broadcast to the number of this channel with new member list
-	        				sendMsg(ip,p,""+channelIndex,command.CHNL);
-	        				sendMsg(ip,p,""+channelIndex, command.MLIST);
-	        			}
-	        		}
+	        				joinChannel(name,ip, p, channelIndex);
+	        			
+	        		}//else
 	        	}
 	        	else{
 	        		sendMsg(ip, p, "no channel Number specifiled", command.ERROR);
