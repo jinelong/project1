@@ -1,0 +1,54 @@
+Team member: 
+			Jin,Yilong (jin28@purdue.edu)
+			Schafer, John
+			 
+
+FIFO broadcaster:
+	1. client.java: generic client class
+	2. iterClient.java: main client
+	3. seqComparator.java: helper class for main client class
+	4. threadServer.java: server end
+	5. fifoTester.java: for testing purpose, for intuitively observing the FIFO broadcasting process
+	
+to compile:
+	make
+	
+to Run the server:
+	java threadServer [port]
+	for testing purpose the default server address is sslab01.cs.purdue.edu, port is 22222 
+	
+to Run the  client:
+	java iterClient
+	for testing purpose the default server address is sslab01.cs.purdue.edu, port is 22222, receiving port is 22223
+
+	1. creating the server: 
+		when you are the first one on the server, you have no other option but create a channel
+		to create the channel, enter 'create'
+		
+		for testing purpose, the maximum number of channels on the server is 5
+	
+	2. join the channel:
+		when there are other users on the server, when run the client, server would send the general
+		stat, you can either choose to create a channel by enter 'create' or join a channel 'join [channelNum]'
+		
+
+	3. sending broadcast:
+		when you are in a channel with other people, you can send broadcasts 
+		in the format of "b@[yourMsg]"
+		
+	4. to quit:
+		enter 'quit'
+	
+to Run the fifo test:
+	java fifoTest
+	for testing purpose, this client should be run on sslab10.cs.prudue.edu, port number 22223
+	testing target is sslab02.cs.purdue.edu
+	you should at least have 3 clients running to see the result
+	
+	fifoTester should print out the current message, but notice that the message is not in the correct order (sequenceID)
+	
+	but the output of client.java, all the messages are sent in correct order
+	
+	
+
+	

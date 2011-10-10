@@ -194,7 +194,7 @@ public class threadServer extends Thread {
 	 static class RemindTask extends TimerTask {
 	        public void run() {
 	        	int i = 0;
-        		System.out.println("in timer");	
+        		//System.out.println("in timer");	
         		Socket s = null;
         		
         		//iterate through the channel
