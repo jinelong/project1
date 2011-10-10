@@ -1,5 +1,7 @@
+import java.lang.reflect.Array;
 import java.net.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.PriorityQueue;
 import java.util.Scanner;
 import java.io.*;
@@ -51,10 +53,51 @@ public class iterClient {
 	public enum command {createChannel, joinChannel, stat, quit ,heartbeat} 
 	
 	//
+	class fifoBroadcaster extends Thread{
+		
+		public void run(){
+			String content = null;
+			while(doNotQuit){
+				if(!messageBuffer.isEmpty()){
+					//System.out.println("messageBUffer is not empty");
+					
+					//every person in the cache
+					for(int i =0;i< messageBuffer.size(); i++){
+						//messageBuffer.get(i).sort();
+						//for current person, send all his messages
+						while((content = messageBuffer.get(i).poll())!=null){
+							try {
+								broadcast(content, messageBuffer.get(i).userID, true);
+							} catch (NumberFormatException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							} catch (UnknownHostException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							} catch (IOException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+						}
+						
+					}//for
+				}//if
+			
+			
+			try {
+				Thread.sleep(2000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		  }//while
+		}//run
+	}
+	
 	class bufferSlot  {
 		String userID = null;
-		PriorityQueue<String> bufferQ= new PriorityQueue<String>();
-		
+		ArrayList<String> bufferQ= new ArrayList<String>();
+		int expectedSeqID = 0;
 		
 		public bufferSlot(String name){
 			userID = name;
@@ -63,15 +106,37 @@ public class iterClient {
 		{
 			bufferQ.add(msg);
 		}
+		public void sort(){
+			Collections.sort(bufferQ, new seqComparator());
+			
+		}
+		
 		
 		//get the top msg
 		public String poll(){
+
+			//"b"+"@"+myName+"@"+msgCounter+"@"+msg+"@";
 			if(!bufferQ.isEmpty()){
-				return bufferQ.poll();
+			Scanner s = new Scanner(bufferQ.get(0)).useDelimiter("@");
+			if(s.hasNext()){
+				s.next();
+				String name = s.next();
+				int temp = Integer.parseInt(s.next());
+				String m = s.next();
+				
+				if(!bufferQ.isEmpty() && temp==expectedSeqID){
+				
+					String retval = bufferQ.get(0);
+					bufferQ.remove(0);
+					expectedSeqID++;
+					System.out.println(name + ": " + m);
+					return retval;
+				}
 			}
-			
+			}
 			return null;
 		}
+		
 		
 	}
 
@@ -83,11 +148,24 @@ public class iterClient {
 		for(int i = 0; i< messageBuffer.size();i++){
 			if(messageBuffer.get(i).userID.equals(name)){
 				messageBuffer.get(i).bufferQ.add(msg);
+				messageBuffer.get(i).sort();
+				//printCacheSlot(i);
 				return;
 			}
 		}
 		
+
+		
 	}
+	void printCacheSlot(int i){
+		System.out.println("in print cache");
+		for(i=0;i<messageBuffer.get(i).bufferQ.size();i++)
+			System.out.println(messageBuffer.get(i).userID + "has message in buffer: " + messageBuffer.get(i).bufferQ.get(i));
+		
+	}
+	//this server will run in another thread
+	//check messageBuffer arrayList for message from each client
+	//will send message according to the sequence number
 	
 	// boradcast using multi thread
 	class broadcastSender extends Thread{
@@ -147,6 +225,7 @@ public class iterClient {
 		//then simply forward it to everyone in the network
 		if(isForward){
 			content = msg;
+		//	prettyPrintmsg(content);
 		}
 		else{
 			//instead of sending instances of bmsg 
@@ -164,22 +243,30 @@ public class iterClient {
 				msgCounter++;
 			}
 			
-			System.out.println("msgCounter is " + msgCounter);
+			//System.out.println("msgCounter is " + msgCounter);
 
 						
 		}//else
 		
 		//iterate through the list, send message
 		for(int i =0;i<localList.size();i++){
-			
+					
 			//do not send the message to myself or the person you got the message from
 			if(localList.get(i).name.equals(myName) || localList.get(i).name.equals(from)) continue;
-			
+			//System.out.println("broadcasting to " + localList.get(i).name );
 			new Thread (new broadcastSender(localList.get(i).ip, Integer.parseInt(localList.get(i).chatPort), content)).run();
 	
 		}
 		
 		
+	}
+	public void prettyPrintmsg(String msg){
+		Scanner s = new Scanner(msg).useDelimiter("@");
+		s.next();//b
+		String sender = s.next();
+		s.next();//seqStr
+		String m = s.next();
+		System.out.println(sender + ": " + m);
 	}
 
 	public void printClients(){
@@ -203,14 +290,19 @@ public class iterClient {
 		
 		myName = name;
 		
+		//for testing fifo boradcast
+		messageBuffer.add(new bufferSlot("tester"));
+		
 		
 		// setup listening server for server info and client message
 		// maybe we should make this multi-thread
 		rServer = new receiveServer(ownPort);
 		rServer.start();
-		
+		new Thread(new fifoBroadcaster()).start();
 		//send stat request to the server
 		sendToServer(command.stat, 0);
+		
+		
 		
 		
 	}//constructor
@@ -282,13 +374,30 @@ public class iterClient {
 								localList.clear();
 								//System.out.println("localList reset, size: " + localList.size());
 								
+								//this is a tester client for fifo
+								localList.add(new client("tester","sslab10.cs.purdue.edu","22223",myChannelNum));
+								
 								do{
 									Scanner dollar = new Scanner(entry).useDelimiter("\\$");
 									//	public client(String n, String i, String  p, int c){
 									// name, ip, port, channelNum
 
+									String tempName = dollar.next();
+									String tempIP = dollar.next();
+									String tempPort = dollar.next();
 									
-									localList.add(new client(dollar.next(), dollar.next(), dollar.next(), myChannelNum));
+									
+									localList.add(new client(tempName, tempIP, tempPort, myChannelNum));
+									
+									//only create slot for new client
+									for(int i =0;i<messageBuffer.size();i++){
+										if(!messageBuffer.get(i).userID.equals(tempName)){
+											synchronized(this){
+												messageBuffer.add(new bufferSlot(tempName));
+											}
+										}
+									}
+									//create a bufferSlot for a client
 									
 									System.out.println(localList.get(localList.size()-1).name + " added to the list" );
 									
@@ -336,19 +445,36 @@ public class iterClient {
 							//server@rm@name_of_person_who_left
 							else if(instruction.equals("rm")){
 								String tempName = t1.next();
+								boolean ifRemovedBuffer = false;
 								boolean ifRemoved = false;
+								for(int j =0; j<messageBuffer.size(); j++){
+									if(messageBuffer.get(j).userID.equals(tempName)){
+										synchronized(this){
+											messageBuffer.remove(j);
+										}
+										ifRemovedBuffer= true;
+										break;
+									}
+								}
 								for(int i=0;i<localList.size();i++){
 									if(localList.get(i).name.equals(tempName)){
 										localList.remove(i);
 										ifRemoved = true;
+										break;
 									}
-									
 								}//for
+								
 								if(ifRemoved){
 									System.out.println(tempName + " is removed");
 									printClients();
 								}else{
 									System.err.println("something wrong happened, not sure why ,but "  + tempName + " is not removed");
+								}
+								if(ifRemovedBuffer){
+									System.out.println(tempName + " is removed from buffer also");
+								}else{
+									System.err.println("something wrong happened when try to remove " + tempName + " from buffer");
+									
 								}
 							}//else if rm
 
@@ -376,17 +502,22 @@ public class iterClient {
 							String seqStr = t1.next();
 							String msg = t1.next();
 							
-							String historyMsg = senderName+"@"+seqStr+"@"+msg+"@";
+						 String historyMsg = senderName+"@"+seqStr+"@"+msg+"@";
 							 
 							//System.out.println("got a broadcast: "+ senderName + " says: "  + msg + "seq: " + seqStr);
-
+/*
 							if(!sentMsg.contains(historyMsg)){
 								sentMsg.add(historyMsg);
 								System.out.println(senderName + " says: " + msg);
 								broadcast("b@"+historyMsg, senderName, true);
-								
 							}
-							
+	*/	
+							if(!sentMsg.contains(historyMsg)){
+								//System.out.println(senderName + " says: " + msg);
+								sentMsg.add(historyMsg);
+								cacheMes(senderName, "b@"+historyMsg );
+							}
+								
 						}
 						else{
 							System.out.println("got unknown message: " + str);
@@ -494,6 +625,7 @@ public class iterClient {
 			//s.next()  quit or b@message
 			if(str.equals("quit")){
 				user.sendToServer(command.quit, 0);
+				doNotQuit = false;
 				break;
 			}
 			else if(str.equals("create")   && !cantJoinOrCreate){
