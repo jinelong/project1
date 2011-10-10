@@ -14,7 +14,6 @@
  */
 
 public class client {
-
 	
 	public String name;
 	public String ip;
