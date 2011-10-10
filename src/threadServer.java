@@ -180,7 +180,7 @@ public class threadServer extends Thread {
 			
 		}//if
 		else{
-			content = "no channel created, you are the first one on this server\n you can enter 'creatChannel' to create one";
+			content = "no channel created, you are the first one on this server";
 		}
 		//wr.write(content);
 		//wr.flush();
