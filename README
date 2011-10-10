@@ -1,5 +1,7 @@
-Team member: Jin,Yilong 
-			 Schafer, John
+Team member: 
+			Jin,Yilong (jin28@purdue.edu)
+			Schafer, John
+			 
 
 FIFO broadcaster:
 	1. client.java: generic client class
@@ -47,4 +49,6 @@ to Run the fifo test:
 	
 	but the output of client.java, all the messages are sent in correct order
 	
+	
+
 	
