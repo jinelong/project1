@@ -1,0 +1,19 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    
+    
+    android:id="@+id/mlayout"
+    android:layout_width="fill_parent" 
+    android:layout_height="fill_parent">
+    
+    
+    <com.google.android.maps.MapView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/mlayout2"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:clickable="true"
+    android:apiKey="09-4AuPHZj2oZpOlfO962YXh3tFuW7Bn0pPR7ag"
+/>
+            
+</LinearLayout>
+

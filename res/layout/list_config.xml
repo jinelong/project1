@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
+    android:orientation="horizontal"
+    android:layout_width="fill_parent"
+    android:layout_height="80dip"
+    android:paddingRight="10dip"
+    android:paddingTop="1dip"
+    android:paddingBottom="1dip"
+    android:paddingLeft="10dip"
+    android:gravity="center"
+    android:background="@android:color/transparent"
+    
+    >
+  <LinearLayout
+   
+   	android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:paddingRight="1dip"
+    android:paddingLeft="1dip"
+    android:gravity="center"
+    android:orientation="horizontal"
+  	
+   >
+  
+  
+   
+   
+   </LinearLayout>
+  <LinearLayout
+  	android:layout_width="160dip"
+    android:layout_height="fill_parent"
+    android:paddingRight="10dip"
+    android:paddingTop="1dip"
+    android:paddingBottom="1dip"
+    android:paddingLeft="10dip"
+    android:gravity="left"
+    android:orientation="horizontal"
+  
+  >
+  
+  <TextView
+  
+  	android:id="@+id/room"
+  	android:layout_width="fill_parent"
+  	android:textSize="10pt"
+  	android:layout_height="fill_parent"
+	android:gravity="center"
+  	android:singleLine="true"
+  	android:paddingRight="6dip"
+  	
+  	
+  />
+  </LinearLayout>
+   
+   
+   <LinearLayout
+   
+   	android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:paddingRight="10dip"
+    android:paddingLeft="10dip"
+    android:gravity="bottom"
+    android:orientation="horizontal"
+   
+   >
+	 <TextView
+	 
+	 	android:id="@+id/status"
+	 	android:textSize="6pt"
+	 	android:layout_width="fill_parent"
+	 	android:layout_height="fill_parent"
+	 	android:gravity="center"
+	 
+	 	/>
+ 	
+ </LinearLayout>	
+    
+    
+</LinearLayout>
