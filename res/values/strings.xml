@@ -4,5 +4,11 @@
     <string name="app_name">LabCheck</string>
     <string name="lab_check_addr">https://www.purdue.edu/apps/ics/LabMap</string>
     
-    
+    <string-array name = "spinnerName">
+   		<item>PC + Mac</item>
+	    <item>PC</item>
+	    <item>Mac</item>
+	    <item>my Favoriate</item>
+	    
+    </string-array>
 </resources>

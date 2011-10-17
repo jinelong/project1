@@ -1,34 +1,50 @@
 package local.bin;
 
-
-//github addr:
-//git@github.com:jinelong/labcheck.git
-
 import java.io.BufferedInputStream;
-import java.io.BufferedReader;
-import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+
+
 import org.apache.http.util.ByteArrayBuffer;
 
 import android.app.Activity;
+import android.app.ListActivity;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
+import android.widget.ListView;
+import android.widget.SimpleAdapter;
+import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
+import android.widget.AdapterView.OnItemSelectedListener;
+
+
+//github addr:
+//git@github.com:jinelong/labcheck.git
+
 
 /*
  * further UI design
@@ -58,13 +74,17 @@ import android.widget.TextView;
 
 
 
-public class LabCheckActivity extends Activity {
+public class LabCheckActivity extends ListActivity {
+	
+	private enum COMPUTER  {ALL, WIN, MAC}
 	
 	private TextView t = null;
-	private final String PATH = "/data/";  //put the downloaded file here
 	
-	private String [] labName ;
 	
+	public ArrayList<HashMap<String, String>> list = new ArrayList<HashMap<String, String>>();
+	ArrayAdapter<CharSequence> adapter;
+	Spinner selectStation;
+
 	
 	private class rooms {
 	 	
@@ -86,7 +106,10 @@ public class LabCheckActivity extends Activity {
 	 	
 	 }//rooms
 
-	ArrayList<rooms> roomList = new ArrayList();
+	static ArrayList<rooms> roomList = new ArrayList<rooms>();
+	static ArrayList<rooms> roomAvailable = new ArrayList<rooms>();
+	static ArrayList<rooms> roomNoAvailable = new ArrayList<rooms>();
+
 	boolean newRoomFlag = true;
 	String bName = null;
 	String rName = null;
@@ -94,25 +117,193 @@ public class LabCheckActivity extends Activity {
 	String currentLatitude = null;
 	String currentLongtitude = null;
 	
+	public boolean onCreateOptionsMenu(Menu menu) {
+		// TODO Auto-generated method stub
 
+		
+		menu.add(0, 1, 1, "find me a PC");
+		menu.add(0, 2, 2, "find me a mac");
+		menu.add(0, 3, 3, "LabMap");
+		menu.add(0, 4, 4, "quit");
 	
+		return super.onCreateOptionsMenu(menu);
+
+	}
+
+	public boolean onOptionsItemSelected(MenuItem item) {
+		// TODO Auto-generated method stub
+
+		switch (item.getItemId()) {
+		
+		case 4:
+			finish();
+			break;
+
+		case 3:
+			
+			Intent gotoMapview = new Intent();
+			gotoMapview.setClass(LabCheckActivity.this, mapview.class);
+			this.startActivity(gotoMapview);
+
+
+			break;
+		// about
+		case 2:
+			updateList(roomAvailable, COMPUTER.MAC);
+			//intent.setClass(main.this, about.class);
+			//startActivity(intent);
+			break;
+
+		// help
+		case 1:
+			updateList(roomAvailable, COMPUTER.WIN);
+			//startActivity(help);
+			break;
+		}// switch
+		return super.onOptionsItemSelected(item);
+	}
+	
+	
+	@Override
+	protected void onListItemClick(ListView l, View v, int position, long id) {
+		// TODO Auto-generated method stub
+		
+		Toast toast = Toast.makeText(this, list.size() + " are available",  Toast.LENGTH_SHORT);
+    	toast.show();
+    	
+    	Log.d("itemClick", "position: " + position);
+    	
+    	super.onListItemClick(l, v, position, id);
+
+		// when an entry is clicked, connect tio the client, and setup voice
+		// clal
+	}
+	
+	void updateList(ArrayList<rooms> r, COMPUTER type ) {
+
+		list.clear();
+		
+		if(type.equals(COMPUTER.ALL)){
+		
+			try {
+				
+				for (int i =0; i< r.size(); i++){
+					HashMap<String, String> tempHash = null;				
+					
+					String name = r.get(i).building + " " + r.get(i).room;
+					String status = r.get(i).status;
+					
+					Log.d("",name);
+					Log.d("",status);
+					tempHash = new HashMap<String, String>();
+					tempHash.put("room", name);
+					tempHash.put("status", status);
+					
+				
+					
+					list.add(tempHash);
+	
+				}
+
+			} catch (Exception e) {
+				;
+			}
+		}
+		else{
+			String t;
+			if(type.equals(COMPUTER.WIN))
+				 t = "Windows";
+			else
+				t = "Mac";
+			try {
+			
+				for (int i =0; i< r.size(); i++){
+					if(r.get(i).status.contains(t)){
+						HashMap<String, String> tempHash = null;
+						
+						String name = r.get(i).building + " " + r.get(i).room;
+						String status = r.get(i).status;
+						
+						Log.d("",name);
+						Log.d("",status);
+						//System.out.println("adding ip: " + ip);
+		
+						tempHash = new HashMap<String, String>();
+						tempHash.put("room", name);
+						tempHash.put("status", status);
+						
+						list.add(tempHash);
+					}
+				}
+				
+	
+			} catch (Exception e) {
+				;
+			}
+			
+		}//win || mac
+		
+		
+
+		Toast toast = Toast.makeText(this, list.size() + " are available",  Toast.LENGTH_SHORT);
+    	toast.show();
+    	
+		SimpleAdapter listAdapter = new SimpleAdapter(this, list, R.layout.list_config, new String[] { "room", "status" },new int[] { R.id.room, R.id.status});
+		setListAdapter(listAdapter);
+
+	}
+
+	class SpinnerOnSelectedListener implements OnItemSelectedListener{
+
+		@Override
+		public void onItemSelected(AdapterView<?> arg0, View arg1, int arg2,
+				long arg3) {
+			// TODO Auto-generated method stub
+			switch(arg2){
+			case 0:	updateList(roomAvailable, COMPUTER.ALL);break;
+			case 1:	updateList(roomAvailable, COMPUTER.WIN);break;
+			case 2:	updateList(roomAvailable, COMPUTER.MAC);break;
+				
+			}
+			
+			
+		}
+
+		@Override
+		public void onNothingSelected(AdapterView<?> arg0) {
+			// TODO Auto-generated method stub
+			
+		}
+		
+		
+		
+	} 
     /** Called when the activity is first created. */
-    @Override
     public void onCreate(Bundle savedInstanceState) {
+    	
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
-
+      
+        
+        adapter = ArrayAdapter.createFromResource(this, R.array.spinnerName, android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        
         t= (TextView)findViewById(R.id.t1);
-        t.setMovementMethod(new ScrollingMovementMethod());
+        
+        selectStation = (Spinner)findViewById(R.id.spinner);
+        selectStation.setAdapter(adapter);
+        selectStation.setPrompt("Find Me a...");
+        selectStation.setOnItemSelectedListener(new SpinnerOnSelectedListener());
+    
+       
         String a = "https://www.purdue.edu/apps/ics/LabMap";
         String b = "http://www.purdue.edu/";
        // t.setVisibility(View.INVISIBLE);
         
-        DownloadFromUrl(a, "/mnt/sdcard/lab");
+        //DownloadFromUrl(a, "/mnt/sdcard/lab");
         
         //FileInputStream fstream = null;
-        
-        
+       
         
         try {
 			read();
@@ -122,20 +313,20 @@ public class LabCheckActivity extends Activity {
 		}
         
         //finish();
-        String content = roomList.size() + " computer labs found";
-        for(int i =0; i< roomList.size(); i++){
+        String content = roomList.size() + " computer labs found " + roomAvailable.size() + " labs are available now";
+        /*for(int i =0; i< roomList.size(); i++){
         	content += "\n" + roomList.get(i).building+" "+roomList.get(i).room+ "\n" + roomList.get(i).longtitude+ roomList.get(i).latitude+"\n" + roomList.get(i).status + "\n";
         	
-        }
+        }*/
+        
         t.setText(content);
         t.setVisibility(View.VISIBLE);
         
-        
-        
+        //updateList(roomAvailable, COMPUTER.ALL);
 		
     }
     
-    private void parse(String line){
+	private void parse(String line){
 		Pattern room = Pattern.compile("<br>");
 		String[] result = room.split(line);
 	    
@@ -193,7 +384,24 @@ public class LabCheckActivity extends Activity {
 	        	}
 		
 	        	if(!newRoomFlag){
+	        		String s2 = null;
 	        		roomList.add(new rooms(bName, rName, status, currentLongtitude, currentLatitude));
+	        		
+	        		if(status.contains("Class in Session") || status.contains("CLOSED"))
+	        			roomNoAvailable.add(new rooms(bName, rName, status, currentLongtitude, currentLatitude));
+	        		else if(status.contains("available") && !status.contains("0 of")){
+	        			if(status.contains("Windows")){
+	        				s2 = (String) status.subSequence(0, status.indexOf("Windows")+7) + " station available";
+	        				Log.d("s2",s2);
+		        			
+	        			}else{
+	        				
+	        				s2 = (String) status.substring(0, status.indexOf("Mac")+3 ) + " OS X stations available";
+	        				
+	        			}
+	        			roomAvailable.add(new rooms(bName, rName, s2, currentLongtitude, currentLatitude));
+
+	        		}
 	        		Log.d("roomInfo","item added");
 	        		newRoomFlag = true;
 	        	}
@@ -214,6 +422,13 @@ public class LabCheckActivity extends Activity {
         
 		//Pattern p2 = Pattern.compile("a href=LabInfo?building=\\S+&room=\\d+>");
      
+        if(!fFileName.equals(null))	{
+        	
+        	Toast toast = Toast.makeText(this, "LapFile Found",  Toast.LENGTH_SHORT);
+        	toast.show();
+        	
+        }
+        
         try {
           while (scanner.hasNextLine()){
             String line = scanner.nextLine();
