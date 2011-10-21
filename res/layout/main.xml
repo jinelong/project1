@@ -7,16 +7,20 @@
 <TextView  
 	android:id="@+id/t1"
     android:layout_width="fill_parent" 
-    android:layout_height="wrap_content" 
+    android:layout_height="wrap_content"
+   
+    android:textStyle="bold"
+    android:gravity="center"
    
     />
      
      <Spinner 
+     	
         android:id="@+id/spinner"
 		android:textSize="7pt"
-		
-        android:layout_width="fill_parent"
+		android:layout_width="fill_parent"
         android:layout_height="wrap_content"
+        android:gravity="center"
     />
        <ListView
     	android:gravity="center_horizontal"

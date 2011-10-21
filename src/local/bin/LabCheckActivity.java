@@ -23,6 +23,7 @@ import android.app.Activity;
 import android.app.ListActivity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
@@ -91,14 +92,14 @@ public class LabCheckActivity extends ListActivity {
 	 	public String building;
 	 	public String room;
 	 	public String status;
-	 	public String longtitude;
+	 	public String longitude;
 	 	public String latitude;
 	 	
 	 	public rooms(String b, String r, String s, String lg, String la){
 	 		building = b;
 	 		room = r;
 	 		status = s;
-	 		longtitude = lg;
+	 		longitude = lg;
 	 		latitude = la;
 	 		
 	 		
@@ -123,7 +124,7 @@ public class LabCheckActivity extends ListActivity {
 		
 		menu.add(0, 1, 1, "find me a PC");
 		menu.add(0, 2, 2, "find me a mac");
-		menu.add(0, 3, 3, "LabMap");
+		menu.add(0, 3, 3, "About");
 		menu.add(0, 4, 4, "quit");
 	
 		return super.onCreateOptionsMenu(menu);
@@ -141,9 +142,9 @@ public class LabCheckActivity extends ListActivity {
 
 		case 3:
 			
-			Intent gotoMapview = new Intent();
-			gotoMapview.setClass(LabCheckActivity.this, mapview.class);
-			this.startActivity(gotoMapview);
+			Intent gotoAbout = new Intent();
+			gotoAbout.setClass(LabCheckActivity.this, about.class);
+			this.startActivity(gotoAbout);
 
 
 			break;
@@ -168,11 +169,23 @@ public class LabCheckActivity extends ListActivity {
 	protected void onListItemClick(ListView l, View v, int position, long id) {
 		// TODO Auto-generated method stub
 		
-		Toast toast = Toast.makeText(this, list.size() + " are available",  Toast.LENGTH_SHORT);
-    	toast.show();
-    	
-    	Log.d("itemClick", "position: " + position);
-    	
+    	Intent gotoMapview = new Intent();
+		gotoMapview.setClass(LabCheckActivity.this, mapview.class);
+	
+		/*
+		Log.d("geo", "inLabAct " + list.get(position).get("latitude"));
+		Log.d("geo", "inLabAct " + list.get(position).get("longitude"));
+		Log.d("geo", "inLabAct " + list.get(position).get("buildingAndRoom"));
+		Log.d("geo", "inLabAct " + list.get(position).get("status"));
+		*/
+		
+		gotoMapview.putExtra("status", list.get(position).get("status"));
+		gotoMapview.putExtra("name",list.get(position).get("buildingAndRoom"));
+		gotoMapview.putExtra("la", list.get(position).get("latitude"));
+		gotoMapview.putExtra("lo",list.get(position).get("longitude"));
+		
+		this.startActivity(gotoMapview);
+	
     	super.onListItemClick(l, v, position, id);
 
 		// when an entry is clicked, connect tio the client, and setup voice
@@ -196,11 +209,13 @@ public class LabCheckActivity extends ListActivity {
 					Log.d("",name);
 					Log.d("",status);
 					tempHash = new HashMap<String, String>();
-					tempHash.put("room", name);
+					tempHash.put("buildingAndRoom", name);
 					tempHash.put("status", status);
 					
-				
-					
+
+					tempHash.put("latitude", r.get(i).latitude);
+					tempHash.put("longitude", r.get(i).longitude);
+						
 					list.add(tempHash);
 	
 				}
@@ -229,8 +244,12 @@ public class LabCheckActivity extends ListActivity {
 						//System.out.println("adding ip: " + ip);
 		
 						tempHash = new HashMap<String, String>();
-						tempHash.put("room", name);
+						tempHash.put("buildingAndRoom", name);
 						tempHash.put("status", status);
+						
+						tempHash.put("latitude", r.get(i).latitude);
+						tempHash.put("longitude", r.get(i).longitude);
+						
 						
 						list.add(tempHash);
 					}
@@ -248,7 +267,7 @@ public class LabCheckActivity extends ListActivity {
 		Toast toast = Toast.makeText(this, list.size() + " are available",  Toast.LENGTH_SHORT);
     	toast.show();
     	
-		SimpleAdapter listAdapter = new SimpleAdapter(this, list, R.layout.list_config, new String[] { "room", "status" },new int[] { R.id.room, R.id.status});
+		SimpleAdapter listAdapter = new SimpleAdapter(this, list, R.layout.list_config, new String[] { "buildingAndRoom", "status" },new int[] { R.id.room, R.id.status});
 		setListAdapter(listAdapter);
 
 	}
@@ -313,13 +332,15 @@ public class LabCheckActivity extends ListActivity {
 		}
         
         //finish();
-        String content = roomList.size() + " computer labs found " + roomAvailable.size() + " labs are available now";
+        String content = roomList.size() + " computer labs found " + roomAvailable.size() + " labs are available";
         /*for(int i =0; i< roomList.size(); i++){
         	content += "\n" + roomList.get(i).building+" "+roomList.get(i).room+ "\n" + roomList.get(i).longtitude+ roomList.get(i).latitude+"\n" + roomList.get(i).status + "\n";
         	
         }*/
         
         t.setText(content);
+        t.setTextColor(Color.BLACK);
+        t.setBackgroundColor(Color.rgb(205,173,0));
         t.setVisibility(View.VISIBLE);
         
         //updateList(roomAvailable, COMPUTER.ALL);
@@ -422,13 +443,13 @@ public class LabCheckActivity extends ListActivity {
         
 		//Pattern p2 = Pattern.compile("a href=LabInfo?building=\\S+&room=\\d+>");
      
-        if(!fFileName.equals(null))	{
+    /*    if(!fFileName.equals(null))	{
         	
         	Toast toast = Toast.makeText(this, "LapFile Found",  Toast.LENGTH_SHORT);
         	toast.show();
         	
         }
-        
+      */  
         try {
           while (scanner.hasNextLine()){
             String line = scanner.nextLine();

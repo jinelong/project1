@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout 
+
+	android:id="@+id/LinearLayout01"
+	android:layout_width="fill_parent" 
+	android:layout_height="fill_parent"
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:gravity="center" 
+	android:orientation="vertical"
+	
+	
+	>
+	<LinearLayout
+		
+		android:layout_width="fill_parent" 
+		android:layout_height="300dip"
+		android:orientation = "vertical"
+		android:gravity="center"
+	>
+		<ImageView
+				android:paddingTop="30dip"
+				android:layout_height="wrap_content"
+				android:layout_width="wrap_content"
+				android:src="@drawable/monitor"
+				android:adjustViewBounds="true" 
+				android:scaleType="fitXY"/>
+		/>
+		<TextView 
+	
+		android:id="@+id/progress" 
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content" 
+		android:gravity="center"
+		android:textSize="10pt"
+		android:textStyle="bold" 
+		
+		android:text="checking your Internet connection"
+		
+		
+	/>
+	
+		
+	</LinearLayout>
+	
+	
+	<LinearLayout
+	
+		android:layout_width="fill_parent" 
+		android:layout_height="fill_parent"
+		android:orientation = "vertical"
+		android:gravity="right|bottom"
+	>
+	
+	<TextView 
+	
+		android:id="@+id/TextView01" 
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content" 
+		android:gravity="center"
+		android:textSize="8pt"
+		android:textStyle="bold" 
+		android:textColor="#fff" 
+		
+		android:text="Purdue LabCheck"
+		
+		
+	/>
+		
+	</LinearLayout>
+
+</LinearLayout>

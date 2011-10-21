@@ -8,11 +8,13 @@ import android.graphics.drawable.Drawable;
 import android.util.Log;
 
 import com.google.android.maps.ItemizedOverlay;
+import com.google.android.maps.MapActivity;
 import com.google.android.maps.OverlayItem;
 
 public class HelloItemizedOverlay extends ItemizedOverlay {
 	private ArrayList<OverlayItem> mOverlays = new ArrayList<OverlayItem>();
 	Context mContext = null;
+	AlertDialog.Builder dialog= null;
 	
 	public void addOverlay(OverlayItem overlay) {
 	    mOverlays.add(overlay);
@@ -20,13 +22,17 @@ public class HelloItemizedOverlay extends ItemizedOverlay {
 	}
 	
 	public HelloItemizedOverlay(Drawable defaultMarker) {
+		
 		  super(boundCenterBottom(defaultMarker));
 		}
 	public HelloItemizedOverlay(Drawable defaultMarker, Context context) {
-		  //super(defaultMarker);
 		 super(boundCenterBottom(defaultMarker));
-		  mContext = context;
+		 mContext = context;
+		
+		// super(boundCenterBottom(defaultMarker));
+		  
 		}
+	
 	
 
 	@Override
@@ -36,8 +42,12 @@ public class HelloItemizedOverlay extends ItemizedOverlay {
 	}
 	@Override
 	protected boolean onTap(int index) {
+		
+	  if(mContext==null)
+		  	return false;
+		
 	  OverlayItem item = mOverlays.get(index);
-	  AlertDialog.Builder dialog = new AlertDialog.Builder(mContext);
+	  dialog = new AlertDialog.Builder(mContext);
 	  dialog.setTitle(item.getTitle());
 	  dialog.setMessage(item.getSnippet());
 	  dialog.show();
