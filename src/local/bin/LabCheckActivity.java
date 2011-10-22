@@ -9,6 +9,8 @@ import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Scanner;
@@ -35,12 +37,15 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AdapterView.OnItemSelectedListener;
+import android.widget.CompoundButton.OnCheckedChangeListener;
 
 
 //github addr:
@@ -80,12 +85,28 @@ public class LabCheckActivity extends ListActivity {
 	private enum COMPUTER  {ALL, WIN, MAC}
 	
 	private TextView t = null;
-	
+	private CheckBox showAll = null;
+	private boolean showAllLabs = false;
+	private int currentOpt = 0;
 	
 	public ArrayList<HashMap<String, String>> list = new ArrayList<HashMap<String, String>>();
 	ArrayAdapter<CharSequence> adapter;
 	Spinner selectStation;
 
+
+	class seqComparator implements Comparator<HashMap<String, String>>{
+	   
+	    public int compare(HashMap<String, String> emp1, HashMap<String, String> emp2){
+	   
+	    	String a = (String) emp1.get("buildingAndRoom");
+	    	String b = (String) emp1.get("buildingAndRoom");
+	    	if(a.compareTo(b)>0){
+	    		return 1;
+	    	}
+	    	return -1;
+	    }
+	   
+	}
 	
 	private class rooms {
 	 	
@@ -150,14 +171,14 @@ public class LabCheckActivity extends ListActivity {
 			break;
 		// about
 		case 2:
-			updateList(roomAvailable, COMPUTER.MAC);
+			updateList(COMPUTER.MAC);
 			//intent.setClass(main.this, about.class);
 			//startActivity(intent);
 			break;
 
 		// help
 		case 1:
-			updateList(roomAvailable, COMPUTER.WIN);
+			updateList(COMPUTER.WIN);
 			//startActivity(help);
 			break;
 		}// switch
@@ -192,9 +213,14 @@ public class LabCheckActivity extends ListActivity {
 		// clal
 	}
 	
-	void updateList(ArrayList<rooms> r, COMPUTER type ) {
+	void updateList( COMPUTER type ) {
 
 		list.clear();
+		ArrayList<rooms> r = null;
+		if(showAllLabs)
+			r= roomList;
+		else
+			r = roomAvailable;
 		
 		if(type.equals(COMPUTER.ALL)){
 		
@@ -223,6 +249,7 @@ public class LabCheckActivity extends ListActivity {
 			} catch (Exception e) {
 				;
 			}
+			
 		}
 		else{
 			String t;
@@ -247,6 +274,7 @@ public class LabCheckActivity extends ListActivity {
 						tempHash.put("buildingAndRoom", name);
 						tempHash.put("status", status);
 						
+						
 						tempHash.put("latitude", r.get(i).latitude);
 						tempHash.put("longitude", r.get(i).longitude);
 						
@@ -266,6 +294,7 @@ public class LabCheckActivity extends ListActivity {
 
 		Toast toast = Toast.makeText(this, list.size() + " are available",  Toast.LENGTH_SHORT);
     	toast.show();
+    	Collections.sort(list, new seqComparator());
     	
 		SimpleAdapter listAdapter = new SimpleAdapter(this, list, R.layout.list_config, new String[] { "buildingAndRoom", "status" },new int[] { R.id.room, R.id.status});
 		setListAdapter(listAdapter);
@@ -278,11 +307,11 @@ public class LabCheckActivity extends ListActivity {
 		public void onItemSelected(AdapterView<?> arg0, View arg1, int arg2,
 				long arg3) {
 			// TODO Auto-generated method stub
+			
 			switch(arg2){
-			case 0:	updateList(roomAvailable, COMPUTER.ALL);break;
-			case 1:	updateList(roomAvailable, COMPUTER.WIN);break;
-			case 2:	updateList(roomAvailable, COMPUTER.MAC);break;
-				
+				case 0:	updateList(COMPUTER.ALL);currentOpt = 0;break;
+				case 1:	updateList(COMPUTER.WIN);currentOpt = 1;break;
+				case 2:	updateList(COMPUTER.MAC);currentOpt = 2;break;
 			}
 			
 			
@@ -294,9 +323,9 @@ public class LabCheckActivity extends ListActivity {
 			
 		}
 		
-		
-		
 	} 
+	
+	
     /** Called when the activity is first created. */
     public void onCreate(Bundle savedInstanceState) {
     	
@@ -308,6 +337,27 @@ public class LabCheckActivity extends ListActivity {
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         
         t= (TextView)findViewById(R.id.t1);
+        showAll = (CheckBox)findViewById(R.id.check1);
+        
+        showAll.setOnCheckedChangeListener(new OnCheckedChangeListener()
+        {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked)
+            {
+                if ( isChecked )
+                	showAllLabs = true;
+                	
+                else
+                	showAllLabs = false;
+                
+            	
+    			switch(currentOpt){
+	    			case 0:updateList(COMPUTER.ALL);	break;
+	    			case 1:updateList(COMPUTER.WIN);	break;
+	    			case 2:updateList(COMPUTER.MAC);	break;
+    			}//switch
+             
+            }
+        });
         
         selectStation = (Spinner)findViewById(R.id.spinner);
         selectStation.setAdapter(adapter);
@@ -450,6 +500,7 @@ public class LabCheckActivity extends ListActivity {
         	
         }
       */  
+        
         try {
           while (scanner.hasNextLine()){
             String line = scanner.nextLine();

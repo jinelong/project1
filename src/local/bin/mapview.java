@@ -2,11 +2,19 @@ package local.bin;
 
 import java.util.List;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Message;
 import android.util.Log;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import com.google.android.maps.GeoPoint;
@@ -26,8 +34,80 @@ public class mapview extends MapActivity {
 	String la;
 	String lo;
 	GeoPoint lab;
-	
+	LocationManager myPositionManager;
+	LocationListener myPositionListener;
 	Bundle extras ;
+	GeoPoint myLocation = null;
+	OverlayItem currentPosition = null;
+	List<Overlay> mapOverlays;
+	boolean displayLocation = false;
+	Drawable mapPin;
+	boolean added = false;
+	MapController myMapController;
+	
+	ImageButton b1 = null;
+	
+	 HelloItemizedOverlay layer1;
+	 HelloItemizedOverlay layer2 = null;
+	 
+	public class MyLocationListener implements LocationListener{
+
+		@Override
+		public void onLocationChanged(Location arg0) {
+			
+			// TODO Auto-generated method stub
+			int la = -1;
+			int lo =  -1;
+			while(la ==-1 || lo == -1){
+				la = (int)(arg0.getLatitude()*1E6);
+				lo = (int)(arg0.getLongitude()*1E6);
+			}
+			Toast a= Toast.makeText(mapview.this, ""+la+" "+lo, 1);
+			a.show();
+			
+			myLocation = new GeoPoint(la,lo);
+
+			if(!myLocation.equals(null)){
+				currentPosition = new OverlayItem(myLocation,"Current Location","");
+		     }
+			
+			if(!added){
+		        layer2 = new HelloItemizedOverlay(mapPin,map);
+				mapOverlays.add(layer2);
+				added = true;
+			}
+			 layer2.addOverlay(currentPosition);
+		     myMapController.setZoom(16);
+		     myMapController.animateTo(myLocation);
+		       
+					
+		}
+
+		@Override
+		public void onProviderDisabled(String arg0) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void onProviderEnabled(String arg0) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void onStatusChanged(String arg0, int arg1, Bundle arg2) {
+			// TODO Auto-generated method stub
+			
+		}
+		
+	}
+	 public void onStop(Bundle savedInstanceState) {
+		 super.onStop();
+		 displayLocation = !displayLocation;
+		 myPositionManager.removeUpdates(myPositionListener);
+	 
+	 }
     @Override
     public void onCreate(Bundle savedInstanceState) {
     	 
@@ -35,36 +115,37 @@ public class mapview extends MapActivity {
         setContentView(R.layout.mapview);
         fromMain = getIntent();
         
-        
-        int a = (int) (40.42656*1E6);
-        int b = (int) (-86.92048*1E6);
-        purdue = new GeoPoint(a,b);
-        
+        b1 = (ImageButton)findViewById(R.id.button1);
+        b1.setOnClickListener(new OnClickListener(){
+
+			@Override
+			public void onClick(View v) {
+				
+				
+				// TODO Auto-generated method stub
+				displayLocation = !displayLocation;
+				if(displayLocation){
+			
+					myPositionManager =	(LocationManager)getSystemService(Context.LOCATION_SERVICE);
+			        myPositionListener = new MyLocationListener();
+			        myPositionManager.requestLocationUpdates( LocationManager.NETWORK_PROVIDER, 0, 0, myPositionListener);
+			        
+			        
+				}
+				else{
+					//mapOverlays.remove(layer2);
+					myPositionManager.removeUpdates(myPositionListener);
+					//added = false;
+				}
+				
+			}
+        	
+        	
+        });
+               
         extras = getIntent().getExtras();
-     /*
-        if(extras.get("latitude").equals(null)){
-        	
-        	runOnUiThread(new Runnable(){
-				public void run() {
-					Toast.makeText(mapview.this,"empty", Toast.LENGTH_SHORT).show();
-				}
-				});
-        	
-        }else{
-        	
-        	runOnUiThread(new Runnable(){
-				public void run() {
-					Toast.makeText(mapview.this,extras.get("la").toString(), Toast.LENGTH_SHORT).show();
-				}
-				});
-        }
-        */
-        		
-		
-        //get the info for point 
-        
-       
-           
+   	
+        //get the info for point    
         la = extras.get("la").toString();
         lo = extras.get("lo").toString();
         
@@ -86,51 +167,38 @@ public class mapview extends MapActivity {
     
         map = (MapView) findViewById(R.id.mlayout2);
         map.setBuiltInZoomControls(true);
-        MapController myMapController = map.getController();
+        myMapController = map.getController();
+        
         map.setDrawingCacheEnabled(true);
         map.setDrawingCacheQuality(MapView.DRAWING_CACHE_QUALITY_AUTO);
 
       
         //myMapController.animateTo(purdue);
         myMapController.animateTo(lab);
-        
-        myMapController.setZoom(16);
+        myMapController.setZoom(18);
        
         
-        List<Overlay> mapOverlays = map.getOverlays();
-        Drawable drawable = this.getResources().getDrawable(R.drawable.map_pin);
+        mapOverlays = map.getOverlays();
+        mapPin = this.getResources().getDrawable(R.drawable.map_pin);
         
-        HelloItemizedOverlay itemizedoverlay = new HelloItemizedOverlay(drawable,this);
-        HelloItemizedOverlay itemizedoverlay2 = new HelloItemizedOverlay(drawable,this);
-       
-        
-        
-        
-        GeoPoint point = new GeoPoint(19240000,-99120000);
-        OverlayItem overlayitem = new OverlayItem(point, "Hola, Mundo!", "I'm in Mexico City!");
-        
-        GeoPoint point2 = new GeoPoint(35410000, 139460000);
-        OverlayItem overlayitem2 = new OverlayItem(point2, "Sekai, konichiwa!", "I'm in Japan!");
+        layer1 = new HelloItemizedOverlay(mapPin,map);
         
         OverlayItem overlayitem3 = new OverlayItem(lab, name, status);
+        //OverlayItem overlayitem4 = new OverlayItem(purdue, "", "a point on 2nd layer");
         
-        OverlayItem overlayitem4 = new OverlayItem(purdue, "", "a point on 2nd layer");
-
+        layer1.addOverlay(overlayitem3);
+        //layer2.addOverlay(overlayitem4);
+        
+        mapOverlays.add(layer1);
+       
+     
         
        
-        itemizedoverlay.addOverlay(overlayitem);
-        itemizedoverlay.addOverlay(overlayitem2);
-        itemizedoverlay.addOverlay(overlayitem3);
-        itemizedoverlay2.addOverlay(overlayitem4);
-        
-        mapOverlays.add(itemizedoverlay);
-        mapOverlays.add(itemizedoverlay2);
-        
-       
-        
        
     }
 
     @Override
     protected boolean isRouteDisplayed() { return false; }
+    
+    
 }

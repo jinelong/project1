@@ -26,6 +26,16 @@
 				android:adjustViewBounds="true" 
 				android:scaleType="fitXY"/>
 		/>
+		
+		 <ProgressBar
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:paddingTop="10dip"
+         android:paddingBottom="10dip"
+         android:gravity = "center"
+         style="@android:style/Widget.ProgressBar.Small"
+         android:layout_marginRight="5dp" />
+         
 		<TextView 
 	
 		android:id="@+id/progress" 

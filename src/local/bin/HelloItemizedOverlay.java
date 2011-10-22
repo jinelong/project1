@@ -6,58 +6,43 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.android.maps.ItemizedOverlay;
 import com.google.android.maps.MapActivity;
+import com.google.android.maps.MapView;
 import com.google.android.maps.OverlayItem;
 
-public class HelloItemizedOverlay extends ItemizedOverlay {
-	private ArrayList<OverlayItem> mOverlays = new ArrayList<OverlayItem>();
-	Context mContext = null;
-	AlertDialog.Builder dialog= null;
-	
+public class HelloItemizedOverlay extends BalloonItemizedOverlay<OverlayItem> {
+	private ArrayList<OverlayItem> m_overlays = new ArrayList<OverlayItem>();
+	private Context c;
+
+	public HelloItemizedOverlay(Drawable defaultMarker, MapView mapView) {
+		super(boundCenter(defaultMarker), mapView);
+		c = mapView.getContext();
+	}
+
 	public void addOverlay(OverlayItem overlay) {
-	    mOverlays.add(overlay);
+	    m_overlays.add(overlay);
 	    populate();
 	}
-	
-	public HelloItemizedOverlay(Drawable defaultMarker) {
-		
-		  super(boundCenterBottom(defaultMarker));
-		}
-	public HelloItemizedOverlay(Drawable defaultMarker, Context context) {
-		 super(boundCenterBottom(defaultMarker));
-		 mContext = context;
-		
-		// super(boundCenterBottom(defaultMarker));
-		  
-		}
-	
-	
 
 	@Override
-	protected OverlayItem createItem(int arg0) {
-		// TODO Auto-generated method stub
-		return mOverlays.get(arg0);
-	}
-	@Override
-	protected boolean onTap(int index) {
-		
-	  if(mContext==null)
-		  	return false;
-		
-	  OverlayItem item = mOverlays.get(index);
-	  dialog = new AlertDialog.Builder(mContext);
-	  dialog.setTitle(item.getTitle());
-	  dialog.setMessage(item.getSnippet());
-	  dialog.show();
-	  return true;
+	protected OverlayItem createItem(int i) {
+		return m_overlays.get(i);
 	}
 
 	@Override
 	public int size() {
-		  return mOverlays.size();
-		}
+		return m_overlays.size();
+	}
 
+	@Override
+	protected boolean onBalloonTap(int index, OverlayItem item) {
+		
+		Toast.makeText(c, item.getTitle(),
+				Toast.LENGTH_LONG).show();
+		return true;
+	}
 	
 }

@@ -13,15 +13,31 @@
     android:gravity="center"
    
     />
-     
+     <LinearLayout 
+     	android:orientation="horizontal"
+     	android:layout_width = "fill_parent"
+     	android:layout_height="wrap_content"
+     	android:background="#FFFFFF"
+     >
      <Spinner 
      	
         android:id="@+id/spinner"
 		android:textSize="7pt"
-		android:layout_width="fill_parent"
+		android:layout_width="200dip"
         android:layout_height="wrap_content"
         android:gravity="center"
+        android:paddingRight="10dip"
     />
+    
+    <CheckBox 
+    	android:id="@+id/check1"
+		android:layout_width="wrap_content"
+		android:layout_height="fill_parent" 
+		android:text="show all" 
+		android:textColor="#000000"
+	/>
+        </LinearLayout>
+        
        <ListView
     	android:gravity="center_horizontal"
 	    android:id="@id/android:list"

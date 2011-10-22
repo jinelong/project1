@@ -1,4 +1,4 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     
     
     android:id="@+id/mlayout"
@@ -14,6 +14,15 @@
     android:clickable="true"
     android:apiKey="09-4AuPHZj2oZpOlfO962YXh3tFuW7Bn0pPR7ag"
 />
+    <ImageButton  android:id="@+id/button1" 
+    
+	    android:layout_height="wrap_content" 
+	    android:layout_width="wrap_content" 
+	    android:src="@drawable/golf"
+	    android:layout_alignParentBottom="true"
+	    android:layout_alignParentRight="true">
+	     
+     </ImageButton >
             
-</LinearLayout>
+</RelativeLayout>
 
