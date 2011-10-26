@@ -16,8 +16,9 @@
      <LinearLayout 
      	android:orientation="horizontal"
      	android:layout_width = "fill_parent"
-     	android:layout_height="wrap_content"
-     	android:background="#FFFFFF"
+     	android:layout_height="60dip"
+     	
+     	android:background="@drawable/bubble_grey"
      >
      <Spinner 
      	
